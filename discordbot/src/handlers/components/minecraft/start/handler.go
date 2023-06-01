@@ -17,6 +17,8 @@ import (
 
 var joinedRegex = regexp.MustCompile(`\[.* INFO\]\: (.*) joined the game`)
 var leftRegex = regexp.MustCompile(`\[.* INFO\]\: (.*) left the game`)
+var startedRegex = regexp.MustCompile(`\[.* INFO\]\: Done \(.*\)! For help, type "help"`)
+var started = false
 var users = []string{}
 
 func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
@@ -40,10 +42,10 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 					},
 					{
 						Name:  "Server Status",
-						Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n\n`Users: None`\n",
+						Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Starting...`\n\n`Users: None`\n",
 					},
 				},
-				Color: dsUtils.ColourGreen,
+				Color: dsUtils.ColourOrange,
 			},
 		},
 		Components: []discordgo.MessageComponent{
@@ -86,6 +88,9 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 		Color:       dsUtils.ColourGreen,
 	})
 
+	users = []string{}
+	started = false
+
 	reader, writer := io.Pipe()
 
 	cmdCtx, cmdDone := context.WithCancel(context.Background())
@@ -97,6 +102,14 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 		scanner := bufio.NewScanner(reader)
 		for scanner.Scan() {
 			line := scanner.Text()
+
+			if !started && startedRegex.MatchString(line) {
+				started = true
+
+				message.Embeds[0].Color = dsUtils.ColourGreen
+				message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n\n`Users: None`\n"
+				session.ChannelMessageEditComplex(message)
+			}
 
 			if joinedRegex.MatchString(line) {
 				user := joinedRegex.FindStringSubmatch(line)[1]
