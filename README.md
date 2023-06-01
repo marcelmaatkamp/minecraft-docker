@@ -1,4 +1,7 @@
 # Legendary Java Minecraft + Geyser + Floodgate + Paper Dedicated Server for Docker
+
+# This has a discordbot embeded into it which allows people to turn on and off the server at will. This is designed for me and my friends and I will not support this container for anyone else.
+
 <img src="https://jamesachambers.com/wp-content/uploads/2022/08/Minecraft-Geyser-Docker-Container-1024x576.webp" alt="Legendary Minecraft Geyser Container">
 
 This is the Docker containerized version of my <a href="https://github.com/TheRemote/RaspberryPiMinecraft">Minecraft Java Paper Dedicated Server for Linux/Raspberry Pi</a> scripts but with Geyser and Floodgate included.

@@ -1,11 +1,1 @@
-BOT_TOKEN
-APP_ID
-GUILD_ID
-
-MASTER_CONTROLLER_ID
-
-TOBY_ID
-BANISH_VC_ID
-
-MATI_ID
-CHINA_BANISH_VC_ID
+Discord bot that controls the minecraft server
