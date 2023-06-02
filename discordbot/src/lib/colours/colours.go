@@ -1,4 +1,4 @@
-package utils
+package colours
 
 var (
 	ColourYellow int = 0xFFD60A

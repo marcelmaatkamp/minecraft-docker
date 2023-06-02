@@ -8,11 +8,14 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 
-	dsUtils "discordbot/src/lib/utils"
+	"discordbot/src/lib/colours"
+	"discordbot/src/lib/timeout"
 )
 
 var joinedRegex = regexp.MustCompile(`\[.* INFO\]\: (.*) joined the game`)
@@ -21,137 +24,234 @@ var startedRegex = regexp.MustCompile(`\[.* INFO\]\: Done \(.*\)! For help, type
 var started = false
 var users = []string{}
 
+var autostopContext context.Context
+var autostopCancel context.CancelFunc
+
 func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	message := &discordgo.MessageEdit{
-		ID:      interaction.Message.ID,
-		Channel: interaction.Message.ChannelID,
-		Embeds: []*discordgo.MessageEmbed{
-			{
-				Fields: []*discordgo.MessageEmbedField{
-					{
-						Name:  "Bedrock Connection Details",
-						Value: fmt.Sprintf("Server address: `%s`\nPort: `%s`\n​", os.Getenv("BEDROCK_ADDRESS"), os.Getenv("BEDROCK_PORT")),
-					},
-					{
-						Name:  "Java Connection Details",
-						Value: fmt.Sprintf("Server address: `%s:%s`\n​", os.Getenv("JAVA_ADDRESS"), os.Getenv("JAVA_PORT")),
-					},
-					{
-						Name:  "Worlds",
-						Value: "Hub (access via `/hub`)\nNew world (access via `/newworld`)\nOld world (access via `/oldworld`)\n​",
-					},
-					{
-						Name:  "Server Status",
-						Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Starting...`\n`Users: None`\n",
-					},
-				},
-				Color: dsUtils.ColourOrange,
-			},
-		},
-		Components: []discordgo.MessageComponent{
-			discordgo.ActionsRow{
-				Components: []discordgo.MessageComponent{
-					discordgo.Button{
-						Label:    "Start server",
-						Style:    discordgo.SuccessButton,
-						Disabled: false,
-						CustomID: "minecraft:start",
-					},
-					discordgo.Button{
-						Label:    "Stop server",
-						Style:    discordgo.DangerButton,
-						Disabled: false,
-						CustomID: "minecraft:stop",
-					},
-				},
-			},
-		},
-	}
+	if !timeout.GetTimeout("minecraft") {
+		durationInSeconds, err := strconv.Atoi(os.Getenv("START_STOP_TIMEOUT_IN_SECONDS"))
+		if err != nil {
+			durationInSeconds = 30
+		}
+		go timeout.StartTimeout("minecraft", time.Second*time.Duration(durationInSeconds))
 
-	session.ChannelMessageEditComplex(message)
-
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
+		message := &discordgo.MessageEdit{
+			ID:      interaction.Message.ID,
+			Channel: interaction.Message.ChannelID,
 			Embeds: []*discordgo.MessageEmbed{
 				{
-					Description: "Starting minecraft server...",
-					Color:       dsUtils.ColourBlue,
+					Fields: []*discordgo.MessageEmbedField{
+						{
+							Name:  "Bedrock Connection Details",
+							Value: fmt.Sprintf("Server address: `%s`\nPort: `%s`\n​", os.Getenv("BEDROCK_ADDRESS"), os.Getenv("BEDROCK_PORT")),
+						},
+						{
+							Name:  "Java Connection Details",
+							Value: fmt.Sprintf("Server address: `%s:%s`\n​", os.Getenv("JAVA_ADDRESS"), os.Getenv("JAVA_PORT")),
+						},
+						{
+							Name:  "Worlds",
+							Value: "Hub (access via `/hub`)\nNew world (access via `/newworld`)\nOld world (access via `/oldworld`)\n​",
+						},
+						{
+							Name:  "Server Status",
+							Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Starting...`\n`Users: None`\n",
+						},
+					},
+					Color: colours.ColourOrange,
 				},
 			},
-			Flags: discordgo.MessageFlagsEphemeral,
-		},
-	})
+			Components: []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					Components: []discordgo.MessageComponent{
+						discordgo.Button{
+							Label:    "Start server",
+							Style:    discordgo.SuccessButton,
+							Disabled: false,
+							CustomID: "minecraft:start",
+						},
+						discordgo.Button{
+							Label:    "Stop server",
+							Style:    discordgo.DangerButton,
+							Disabled: false,
+							CustomID: "minecraft:stop",
+						},
+					},
+				},
+			},
+		}
 
-	session.ChannelMessageSendEmbed(os.Getenv("LOGS_CHANNEL"), &discordgo.MessageEmbed{
-		Description: fmt.Sprintf("%s has started the server", interaction.Member.Mention()),
-		Color:       dsUtils.ColourGreen,
-	})
+		session.ChannelMessageEditComplex(message)
 
-	users = []string{}
-	started = false
+		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{
+					{
+						Description: "Starting minecraft server...",
+						Color:       colours.ColourBlue,
+					},
+				},
+				Flags: discordgo.MessageFlagsEphemeral,
+			},
+		})
 
-	reader, writer := io.Pipe()
+		session.ChannelMessageSendEmbed(os.Getenv("LOGS_CHANNEL"), &discordgo.MessageEmbed{
+			Description: fmt.Sprintf("%s has started the server", interaction.Member.Mention()),
+			Color:       colours.ColourGreen,
+		})
 
-	cmdCtx, cmdDone := context.WithCancel(context.Background())
+		users = []string{}
+		started = false
 
-	scannerStopped := make(chan struct{})
-	go func() {
-		defer close(scannerStopped)
+		ctx, cancel := context.WithCancel(context.Background())
+		autostopContext = ctx
+		autostopCancel = cancel
 
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			line := scanner.Text()
+		reader, writer := io.Pipe()
 
-			if !started && startedRegex.MatchString(line) {
-				started = true
+		cmdCtx, cmdDone := context.WithCancel(context.Background())
 
-				message.Embeds[0].Color = dsUtils.ColourGreen
-				message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: None`\n"
-				session.ChannelMessageEditComplex(message)
-			}
+		scannerStopped := make(chan struct{})
+		go func() {
+			defer close(scannerStopped)
 
-			if joinedRegex.MatchString(line) {
-				user := joinedRegex.FindStringSubmatch(line)[1]
-				users = append(users, user)
+			scanner := bufio.NewScanner(reader)
+			for scanner.Scan() {
+				line := scanner.Text()
 
-				message.Embeds[0].Fields[3].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: %s`\n", strings.Join(users, ", "))
-				session.ChannelMessageEditComplex(message)
-			}
+				if !started && startedRegex.MatchString(line) {
+					started = true
 
-			if leftRegex.MatchString(line) {
-				user := leftRegex.FindStringSubmatch(line)[1]
+					message.Embeds[0].Color = colours.ColourGreen
+					message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: None`\n"
+					session.ChannelMessageEditComplex(message)
 
-				for index, searchUser := range users {
-					if user == searchUser {
-						users = append(users[:index], users[index+1:]...)
-
-						if len(users) > 0 {
-							message.Embeds[0].Fields[3].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: %s`\n", strings.Join(users, ", "))
-							session.ChannelMessageEditComplex(message)
-						} else {
-							message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: None`\n"
-							session.ChannelMessageEditComplex(message)
+					go func(ctx context.Context) {
+						durationInMinutes, err := strconv.Atoi(os.Getenv("AUTOSTOP_TIMEOUT_IN_MINUTES"))
+						if err != nil {
+							durationInMinutes = 30
 						}
 
-						break
+						fmt.Println("Autostop countdown starting")
+
+						select {
+						case <-ctx.Done():
+							fmt.Println("Autostop countdown cancelled")
+							return
+						case <-time.After(time.Duration(time.Minute * time.Duration(durationInMinutes))):
+							fmt.Println("Autostop initiated")
+
+							cmd := exec.Command("pkill", "java")
+							cmd.Start()
+
+							message.Embeds[0].Color = colours.ColourRed
+							message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Offline`\n`Users: None`\n"
+							session.ChannelMessageEditComplex(message)
+
+							session.ChannelMessageSendEmbed(os.Getenv("LOGS_CHANNEL"), &discordgo.MessageEmbed{
+								Description: "Server has stopped automatically",
+								Color:       colours.ColourRed,
+							})
+						}
+					}(autostopContext)
+				}
+
+				if joinedRegex.MatchString(line) {
+					user := joinedRegex.FindStringSubmatch(line)[1]
+					users = append(users, user)
+
+					message.Embeds[0].Fields[3].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: %s`\n", strings.Join(users, ", "))
+					session.ChannelMessageEditComplex(message)
+
+					if autostopCancel != nil {
+						autostopCancel()
 					}
 				}
+
+				if leftRegex.MatchString(line) {
+					user := leftRegex.FindStringSubmatch(line)[1]
+
+					for index, searchUser := range users {
+						if user == searchUser {
+							users = append(users[:index], users[index+1:]...)
+
+							if len(users) > 0 {
+								message.Embeds[0].Fields[3].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: %s`\n", strings.Join(users, ", "))
+								session.ChannelMessageEditComplex(message)
+
+								if autostopCancel != nil {
+									autostopCancel()
+								}
+							} else {
+								message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: None`\n"
+								session.ChannelMessageEditComplex(message)
+
+								ctx, cancel := context.WithCancel(context.Background())
+								autostopContext = ctx
+								autostopCancel = cancel
+
+								go func(ctx context.Context) {
+									durationInMinutes, err := strconv.Atoi(os.Getenv("AUTOSTOP_TIMEOUT_IN_MINUTES"))
+									if err != nil {
+										durationInMinutes = 30
+									}
+
+									fmt.Println("Autostop countdown starting")
+
+									select {
+									case <-ctx.Done():
+										fmt.Println("Autostop countdown cancelled")
+										return
+									case <-time.After(time.Duration(time.Minute * time.Duration(durationInMinutes))):
+										fmt.Println("Autostop initiated")
+										cmd := exec.Command("pkill", "java")
+										cmd.Start()
+
+										message.Embeds[0].Color = colours.ColourRed
+										message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Offline`\n`Users: None`\n"
+										session.ChannelMessageEditComplex(message)
+
+										session.ChannelMessageSendEmbed(os.Getenv("LOGS_CHANNEL"), &discordgo.MessageEmbed{
+											Description: "Server has stopped automatically",
+											Color:       colours.ColourRed,
+										})
+									}
+								}(autostopContext)
+							}
+
+							break
+						}
+					}
+				}
+
+				fmt.Println(line)
 			}
+		}()
 
-			fmt.Println(line)
-		}
-	}()
+		cmd := exec.Command("/bin/bash", "/scripts/start_java.sh")
+		cmd.Stdout = writer
+		_ = cmd.Start()
+		go func() {
+			_ = cmd.Wait()
+			cmdDone()
+			writer.Close()
+		}()
+		<-cmdCtx.Done()
 
-	cmd := exec.Command("/bin/bash", "/scripts/start_java.sh")
-	cmd.Stdout = writer
-	_ = cmd.Start()
-	go func() {
-		_ = cmd.Wait()
-		cmdDone()
-		writer.Close()
-	}()
-	<-cmdCtx.Done()
-
-	<-scannerStopped
+		<-scannerStopped
+	} else {
+		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{
+					{
+						Description: "Please wait a short period of time before using this action again",
+						Color:       colours.ColourBlue,
+					},
+				},
+				Flags: discordgo.MessageFlagsEphemeral,
+			},
+		})
+	}
 }
