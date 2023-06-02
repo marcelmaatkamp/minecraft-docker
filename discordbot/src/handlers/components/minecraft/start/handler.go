@@ -42,7 +42,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 					},
 					{
 						Name:  "Server Status",
-						Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Starting...`\n\n`Users: None`\n",
+						Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Starting...`\n`Users: None`\n",
 					},
 				},
 				Color: dsUtils.ColourOrange,
@@ -107,7 +107,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 				started = true
 
 				message.Embeds[0].Color = dsUtils.ColourGreen
-				message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n\n`Users: None`\n"
+				message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: None`\n"
 				session.ChannelMessageEditComplex(message)
 			}
 
@@ -115,7 +115,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 				user := joinedRegex.FindStringSubmatch(line)[1]
 				users = append(users, user)
 
-				message.Embeds[0].Fields[3].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n\n`Users: %s`\n", strings.Join(users, ", "))
+				message.Embeds[0].Fields[3].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: %s`\n", strings.Join(users, ", "))
 				session.ChannelMessageEditComplex(message)
 			}
 
@@ -127,10 +127,10 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 						users = append(users[:index], users[index+1:]...)
 
 						if len(users) > 0 {
-							message.Embeds[0].Fields[3].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n\n`Users: %s`\n", strings.Join(users, ", "))
+							message.Embeds[0].Fields[3].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: %s`\n", strings.Join(users, ", "))
 							session.ChannelMessageEditComplex(message)
 						} else {
-							message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n\n`Users: None`\n"
+							message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: None`\n"
 							session.ChannelMessageEditComplex(message)
 						}
 

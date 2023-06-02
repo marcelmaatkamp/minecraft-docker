@@ -34,7 +34,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 					},
 					{
 						Name:  "Server Status",
-						Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Offline`\n\n`Users: None`\n",
+						Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Offline`\n`Users: None`\n",
 					},
 				},
 				Color: dsUtils.ColourRed,
