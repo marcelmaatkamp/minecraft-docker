@@ -65,12 +65,6 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 				discordgo.ActionsRow{
 					Components: []discordgo.MessageComponent{
 						discordgo.Button{
-							Label:    "Start server",
-							Style:    discordgo.SuccessButton,
-							Disabled: false,
-							CustomID: "minecraft:start",
-						},
-						discordgo.Button{
 							Label:    "Stop server",
 							Style:    discordgo.DangerButton,
 							Disabled: false,
@@ -147,6 +141,19 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 
 							message.Embeds[0].Color = colours.ColourRed
 							message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Offline`\n`Users: None`\n"
+							message.Components = []discordgo.MessageComponent{
+								discordgo.ActionsRow{
+									Components: []discordgo.MessageComponent{
+										discordgo.Button{
+											Label:    "Start server",
+											Style:    discordgo.SuccessButton,
+											Disabled: false,
+											CustomID: "minecraft:start",
+										},
+									},
+								},
+							}
+
 							session.ChannelMessageEditComplex(message)
 
 							session.ChannelMessageSendEmbed(os.Getenv("LOGS_CHANNEL"), &discordgo.MessageEmbed{
@@ -210,6 +217,19 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 
 										message.Embeds[0].Color = colours.ColourRed
 										message.Embeds[0].Fields[3].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Offline`\n`Users: None`\n"
+										message.Components = []discordgo.MessageComponent{
+											discordgo.ActionsRow{
+												Components: []discordgo.MessageComponent{
+													discordgo.Button{
+														Label:    "Start server",
+														Style:    discordgo.SuccessButton,
+														Disabled: false,
+														CustomID: "minecraft:start",
+													},
+												},
+											},
+										}
+
 										session.ChannelMessageEditComplex(message)
 
 										session.ChannelMessageSendEmbed(os.Getenv("LOGS_CHANNEL"), &discordgo.MessageEmbed{

@@ -51,12 +51,6 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 								Disabled: false,
 								CustomID: "minecraft:start",
 							},
-							discordgo.Button{
-								Label:    "Stop server",
-								Style:    discordgo.DangerButton,
-								Disabled: false,
-								CustomID: "minecraft:stop",
-							},
 						},
 					},
 				},
