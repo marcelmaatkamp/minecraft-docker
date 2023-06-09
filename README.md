@@ -6,6 +6,10 @@ The server uses PaperMC and has preconfigured plugins to allow bedrock people to
 
 The discord bot is written in golang (please dont judge my code, its awful because I made it really quickly - I also have no intention to add additional features or 'fix' my bad code because it does its job)
 
+## Screenshot
+Please note that the `Worlds` field is custom (its been added using the `ADDITIONAL_MESSAGES_FOR_EMBED` environment variable)
+![Demo Image](demo.png)
+
 ## Environment Variables
 For the configuration of environment variables for the discord bot only I recommend using a docker volume. The discord bot loads environment variables from a `.env` file located at `/`
 ```
