@@ -23,7 +23,7 @@ ENV BedrockPort=19132
 # Optional maximum memory Minecraft is allowed to use
 ENV MaxMemory=
 
-# Optional Paper Minecraft Version override
+# OptionalPaper Minecraft Version override
 ENV Version="1.19.4"
 
 # Optional Timezone
@@ -39,7 +39,7 @@ ENV BackupCount=10
 ENV NoPermCheck=""
 
 # Optional switch to tell curl to suppress the progress meter which generates much less noise in the logs
-ENV QuietCurl=""
+ENV QuietCurl="true"
 
 # Optional switch to disable ViaVersion
 ENV NoViaVersion=""
@@ -68,6 +68,9 @@ ENV JAVA_ADDRESS=""
 # The port for accessing the java minecraft server 
 ENV JAVA_PORT="25565"
 
+# Minecraft version for discord bot to display
+ENV MC_VERSION="1.19.4"
+
 # The discord channel in which to log who starts/stops the server, leave blank for it to be disabled
 ENV LOGS_CHANNEL_ID=""
 
@@ -75,7 +78,7 @@ ENV LOGS_CHANNEL_ID=""
 ENV START_STOP_TIMEOUT_IN_SECONDS="30"
 
 # How long it takes for the server to automatically shutdown once empty
-ENV AUTOSTOP_TIMEOUT_IN_MINUTES=""
+ENV AUTOSTOP_TIMEOUT_IN_MINUTES="30"
 
 # Additional fields to add to the embed created by the /minecraft command
 # Fieldname:Content,Fieldname:Content
