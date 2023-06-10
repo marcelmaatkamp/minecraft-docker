@@ -62,13 +62,13 @@ The person who 'owns' the bot (the only one who can run the command to create th
 The address for accessing the bedrock minecraft server like mc.example.org. Needs to be set or a the discord bot will look strange.
 
 ### BEDROCK_PORT
-The port for accessing the bedrock minecraft server. Default is `19132`.
+The port for accessing the bedrock minecraft server. Default is `19132`. This uses a seperate environment variable because the port users connect with might be different to the port within the container.
 
 ### JAVA_ADDRESS
 The address for accessing the java minecraft server like mc.example.org. Needs to be set or a the discord bot will look strange.
 
 ### JAVA_PORT
-The port for accessing the java minecraft server. Default is `25565`.
+The port for accessing the java minecraft server. Default is `25565`. This uses a seperate environment variable because the port users connect with might be different to the port within the container.
 
 ### MC_VERSION
 The minecraft version so the discord bot can display it. Required otherwise bot will look odd.
