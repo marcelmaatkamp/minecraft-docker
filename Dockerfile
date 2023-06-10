@@ -59,13 +59,13 @@ ENV OWNER_ID=""
 # The address for accessing the bedrock minecraft server like mc.example.org
 ENV BEDROCK_ADDRESS=""
 
-# The port for accessing the bedrock minecraft server 
+# The port for accessing the bedrock minecraft server. This uses a seperate environment variable because the port users connect with might be different to the port within the container
 ENV BEDROCK_PORT="19132"
 
 # The address for accessing the java minecraft server like mc.example.org
 ENV JAVA_ADDRESS=""
 
-# The port for accessing the java minecraft server 
+# The port for accessing the java minecraft server. This uses a seperate environment variable because the port users connect with might be different to the port within the container
 ENV JAVA_PORT="25565"
 
 # Minecraft version for discord bot to display
