@@ -9,7 +9,7 @@ FROM ubuntu:rolling AS builder
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install qemu-user-static binfmt-support apt-utils -yqq && rm -rf /var/cache/apt/*
 
 # Use Ubuntu rolling version
-FROM --platform=linux/amd64 ubuntu:rolling
+FROM ubuntu:rolling
 
 # Fetch dependencies
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt-get install golang openjdk-19-jre-headless systemd-sysv tzdata sudo curl unzip net-tools gawk openssl findutils pigz libcurl4 libc6 libcrypt1 apt-utils libcurl4-openssl-dev ca-certificates binfmt-support nano -yqq && rm -rf /var/cache/apt/*
@@ -44,24 +44,47 @@ ENV QuietCurl=""
 # Optional switch to disable ViaVersion
 ENV NoViaVersion=""
 
+# Discord Bot Token
 ENV BOT_TOKEN=""
+
+# Discord Application Id
 ENV APP_ID=""
+
+# Guild Id (can be blank but it will take a bit for commands to register globally - this is a limitation of discord)
 ENV GUILD_ID=""
+
+# The person who 'owns' the bot (the only one who can run the command to create the message that allows for starting/stopping server)
 ENV OWNER_ID=""
+
+# The address for accessing the bedrock minecraft server like mc.example.org
 ENV BEDROCK_ADDRESS=""
-ENV BEDROCK_PORT=""
+
+# The port for accessing the bedrock minecraft server 
+ENV BEDROCK_PORT="19132"
+
+# The address for accessing the java minecraft server like mc.example.org
 ENV JAVA_ADDRESS=""
-ENV JAVA_PORT=""
-ENV LOGS_CHANNEL=""
-ENV START_STOP_TIMEOUT_IN_SECONDS=""
+
+# The port for accessing the java minecraft server 
+ENV JAVA_PORT="25565"
+
+# The discord channel in which to log who starts/stops the server, leave blank for it to be disabled
+ENV LOGS_CHANNEL_ID=""
+
+# The timeout between starting/stopping the server
+ENV START_STOP_TIMEOUT_IN_SECONDS="30"
+
+# How long it takes for the server to automatically shutdown once empty
 ENV AUTOSTOP_TIMEOUT_IN_MINUTES=""
 
-# IPV4 Ports
+# Java default port
 EXPOSE 25565/tcp
+
+# Bedrock default port
 EXPOSE 19132/tcp
 EXPOSE 19132/udp
 
-# Copy scripts to minecraftbe folder and make them executable
+# Container setup
 RUN mkdir /scripts
 RUN mkdir /discordbot
 COPY *.sh /scripts/
