@@ -77,6 +77,12 @@ ENV START_STOP_TIMEOUT_IN_SECONDS="30"
 # How long it takes for the server to automatically shutdown once empty
 ENV AUTOSTOP_TIMEOUT_IN_MINUTES=""
 
+# Additional fields to add to the embed created by the /minecraft command
+# Fieldname:Content,Fieldname:Content
+# : seperates fieldname from content
+# , seperates fields
+ENV ADDITIONAL_MESSAGES_FOR_EMBED=""
+
 # Java default port
 EXPOSE 25565/tcp
 
