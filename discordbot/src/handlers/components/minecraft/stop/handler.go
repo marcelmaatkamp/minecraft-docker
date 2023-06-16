@@ -57,18 +57,6 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 			Value: "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Stopping...`\n`Users: None`\n",
 		})
 
-		session.ChannelMessageEditComplex(&discordgo.MessageEdit{
-			ID:      interaction.Message.ID,
-			Channel: interaction.Message.ChannelID,
-			Embeds: []*discordgo.MessageEmbed{
-				{
-					Fields: fields,
-					Color:  colours.ColourOrange,
-				},
-			},
-			Components: []discordgo.MessageComponent{},
-		})
-
 		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
