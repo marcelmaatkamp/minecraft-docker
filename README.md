@@ -26,7 +26,7 @@ Set Bedrock port environment variable. Default is `19132`.
 Optional maximum memory Minecraft is allowed to use
 
 ### Version
-Optional Paper Minecraft Version override. Default is `1.19.4`.
+Optional Paper Minecraft Version override. Default is `1.20.1`.
 
 ### TZ
 Optional Timezone. Default is `Europe/London`.
