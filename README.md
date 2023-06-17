@@ -31,7 +31,7 @@ Optional Paper Minecraft Version override. Default is `1.20.1`.
 ### TZ
 Optional Timezone. Default is `Europe/London`.
 
-### NoBackup=
+### NoBackup
 Optional folder to ignore during backup operations
 
 ### BackupCount
