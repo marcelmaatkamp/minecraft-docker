@@ -10,6 +10,42 @@ The discord bot is written in golang (please dont judge my code, its awful becau
 Please note that the `Worlds` field is custom (its been added using the `ADDITIONAL_MESSAGES_FOR_EMBED` environment variable)
 ![Demo Image](demo.png)
 
+## Usage
+To use a pre-built image use `ghcr.io/tywil04/minecraft-with-discordbot-docker`. This image uses environment variables as the main method for configuring the container, there are however configuration files for the server that are stored within its volume that can be modified if so desired. I would recommend using a path on the host machine instead of a docker volume because its easier to access your files that way which will be useful and almost certainly required at some point.
+
+### Ports
+The default ports that are exposed and required (they can be changed via the environment variables below):
+- `25565` for Java
+- `19132` for Bedrock
+- `19132/udp` for Bedrock
+
+### Volumes
+If you want your minecraft server to store its config (you most likely do) then you will need to use a volume that links to `/minecraft` in the container.
+
+### Examples
+With default ports:
+```
+docker run -it -v /path/on/host:/minecraft -p 25565 -p 19132 -p 19132/udp --restart unless-stopped ghcr.io/tywil04/minecraft-with-discordbot-docker
+```
+
+## Building
+As with most docker containers, its really easy to build. 
+
+Start by cloning this repo:
+```
+git clone https://github.com/tywil04/minecraft-docker
+```
+
+Enter the repo:
+```
+cd minecraft-docker
+```
+
+Build with tag:
+```
+sudo docker build . -t your-tag-here
+```
+
 ## Environment Variables
 For the configuration of environment variables for the discord bot only I recommend using a docker volume. The discord bot loads environment variables from a `.env` file located at `/`
 ```
