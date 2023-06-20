@@ -1,4 +1,4 @@
-# Minecraft Java and Bedrock Server
+# Java and Bedrock Minecraft With Embed Discord Bot
 
 This is a fork of [TheRemote/Legendary-Java-Minecraft-Geyser-Floodgate](https://github.com/TheRemote/Legendary-Java-Minecraft-Geyser-Floodgate) with an included discord bot that allows people to start and stop the server at will (the server auto shutsdown after a defined period).
 
