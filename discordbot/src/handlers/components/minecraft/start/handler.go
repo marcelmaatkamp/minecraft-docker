@@ -176,7 +176,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 					message.Embeds[0].Fields[len(message.Embeds[0].Fields)-1].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: None`\n"
 					session.ChannelMessageEditComplex(message)
 
-					go autoStop(autostopContext)
+					go autoStop(session, message, autostopContext)
 				}
 
 				if !stopping && joinedRegex.MatchString(line) {
@@ -213,7 +213,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 								autostopContext = ctx
 								autostopCancel = cancel
 
-								go autoStop(autostopContext)
+								go autoStop(session, message, autostopContext)
 							}
 
 							break
