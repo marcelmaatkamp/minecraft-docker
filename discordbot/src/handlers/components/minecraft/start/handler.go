@@ -30,7 +30,7 @@ var users = []string{}
 var autostopContext context.Context
 var autostopCancel context.CancelFunc
 
-func autoStop(ctx context.Context) {
+func autoStop(session *discordgo.Session, message *discordgo.MessageEdit, ctx context.Context) {
 	durationInMinutes, err := strconv.Atoi(os.Getenv("AUTOSTOP_TIMEOUT_IN_MINUTES"))
 		if err != nil {
 			durationInMinutes = 30
