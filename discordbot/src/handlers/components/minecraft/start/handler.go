@@ -23,6 +23,7 @@ var leftRegex = regexp.MustCompile(`\[.* INFO\]\: (.*) left the game`)
 var startedRegex = regexp.MustCompile(`\[.* INFO\]\: Done \(.*\)! For help, type "help"`)
 var stoppingRegex = regexp.MustCompile(`\[.* INFO\]\: Stopping server`)
 var stoppedRegex = regexp.MustCompile(`\[.* INFO\]\: Closing Server`)
+var usernameDisallowedRegex = regexp.MustCompile(`[^a-zA-Z0-9 [[:punct:]]]+`)
 var stopping = false
 var started = false
 var users = []string{}
@@ -181,6 +182,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 
 				if !stopping && joinedRegex.MatchString(line) {
 					user := joinedRegex.FindStringSubmatch(line)[1]
+					user = usernameDisallowedRegex.ReplaceAllString(user, "") // remove disallowed characters from username
 					users = append(users, user)
 
 					message.Embeds[0].Fields[len(message.Embeds[0].Fields)-1].Value = fmt.Sprintf("To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: %s`\n", strings.Join(users, ", "))
@@ -193,6 +195,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 
 				if !stopping && leftRegex.MatchString(line) {
 					user := leftRegex.FindStringSubmatch(line)[1]
+					user = usernameDisallowedRegex.ReplaceAllString(user, "") // remove disallowed characters from username
 
 					for index, searchUser := range users {
 						if user == searchUser {
