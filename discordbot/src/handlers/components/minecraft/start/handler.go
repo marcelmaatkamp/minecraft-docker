@@ -30,6 +30,39 @@ var users = []string{}
 var autostopContext context.Context
 var autostopCancel context.CancelFunc
 
+func autoStop(ctx context.Context) {
+	durationInMinutes, err := strconv.Atoi(os.Getenv("AUTOSTOP_TIMEOUT_IN_MINUTES"))
+		if err != nil {
+			durationInMinutes = 30
+	}
+
+	fmt.Println("Autostop countdown starting")
+
+	select {
+	case <-ctx.Done():
+		fmt.Println("Autostop countdown cancelled")
+		return
+	case <-time.After(time.Duration(time.Minute * time.Duration(durationInMinutes))):
+		fmt.Println("Autostop initiated")
+
+		cmd := exec.Command("pkill", "java")
+		cmd.Start()
+
+		message.Embeds[0].Color = colours.ColourOrange
+		message.Embeds[0].Fields[len(message.Embeds[0].Fields)-1].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Stopping...`\n`Users: None`\n"
+		message.Components = []discordgo.MessageComponent{}
+
+		session.ChannelMessageEditComplex(message)
+
+		if channelId := os.Getenv("LOGS_CHANNEL_ID"); channelId != "" {
+			session.ChannelMessageSendEmbed(channelId, &discordgo.MessageEmbed{
+				Description: "Server has stopped automatically",
+				Color:       colours.ColourRed,
+			})
+		}
+	}
+}
+
 func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	if !timeout.GetTimeout("minecraft") {
 		durationInSeconds, err := strconv.Atoi(os.Getenv("START_STOP_TIMEOUT_IN_SECONDS"))
@@ -106,6 +139,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 
 		users = []string{}
 		started = false
+		stopping = false
 
 		ctx, cancel := context.WithCancel(context.Background())
 		autostopContext = ctx
@@ -142,38 +176,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 					message.Embeds[0].Fields[len(message.Embeds[0].Fields)-1].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Online`\n`Users: None`\n"
 					session.ChannelMessageEditComplex(message)
 
-					go func(ctx context.Context) {
-						durationInMinutes, err := strconv.Atoi(os.Getenv("AUTOSTOP_TIMEOUT_IN_MINUTES"))
-						if err != nil {
-							durationInMinutes = 30
-						}
-
-						fmt.Println("Autostop countdown starting")
-
-						select {
-						case <-ctx.Done():
-							fmt.Println("Autostop countdown cancelled")
-							return
-						case <-time.After(time.Duration(time.Minute * time.Duration(durationInMinutes))):
-							fmt.Println("Autostop initiated")
-
-							cmd := exec.Command("pkill", "java")
-							cmd.Start()
-
-							message.Embeds[0].Color = colours.ColourOrange
-							message.Embeds[0].Fields[len(message.Embeds[0].Fields)-1].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Stopping...`\n`Users: None`\n"
-							message.Components = []discordgo.MessageComponent{}
-
-							session.ChannelMessageEditComplex(message)
-
-							if channelId := os.Getenv("LOGS_CHANNEL_ID"); channelId != "" {
-								session.ChannelMessageSendEmbed(channelId, &discordgo.MessageEmbed{
-									Description: "Server has stopped automatically",
-									Color:       colours.ColourRed,
-								})
-							}
-						}
-					}(autostopContext)
+					go autoStop(autostopContext)
 				}
 
 				if !stopping && joinedRegex.MatchString(line) {
@@ -210,37 +213,7 @@ func Handler(session *discordgo.Session, interaction *discordgo.InteractionCreat
 								autostopContext = ctx
 								autostopCancel = cancel
 
-								go func(ctx context.Context) {
-									durationInMinutes, err := strconv.Atoi(os.Getenv("AUTOSTOP_TIMEOUT_IN_MINUTES"))
-									if err != nil {
-										durationInMinutes = 30
-									}
-
-									fmt.Println("Autostop countdown starting")
-
-									select {
-									case <-ctx.Done():
-										fmt.Println("Autostop countdown cancelled")
-										return
-									case <-time.After(time.Duration(time.Minute * time.Duration(durationInMinutes))):
-										fmt.Println("Autostop initiated")
-										cmd := exec.Command("pkill", "java")
-										cmd.Start()
-
-										message.Embeds[0].Color = colours.ColourOrange
-										message.Embeds[0].Fields[len(message.Embeds[0].Fields)-1].Value = "To start/stop the minecraft server use the buttons below.\n\nWhen you want to use the server, start it and wait a minute (it boots up quickly). Once you have finished (and nobody else is using the server), please stop it.\n\n`Status: Stopping...`\n`Users: None`\n"
-										message.Components = []discordgo.MessageComponent{}
-
-										session.ChannelMessageEditComplex(message)
-
-										if channelId := os.Getenv("LOGS_CHANNEL_ID"); channelId != "" {
-											session.ChannelMessageSendEmbed(channelId, &discordgo.MessageEmbed{
-												Description: "Server has stopped automatically",
-												Color:       colours.ColourRed,
-											})
-										}
-									}
-								}(autostopContext)
+								go autoStop(autostopContext)
 							}
 
 							break
