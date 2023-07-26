@@ -18,4 +18,4 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }} 
         image-name: minecraft-with-discordbot-docker
-        image-tag: $(date +%s)
+        image-tag: latest
