@@ -5,6 +5,8 @@
 # Use Ubuntu rolling version for builder
 FROM ubuntu:rolling AS builder
 
+LABEL maintainer "Tyler <github.26ac3d4d@alias.tylerw.co.uk>"
+
 # Update apt
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install qemu-user-static binfmt-support apt-utils -yqq && rm -rf /var/cache/apt/*
 
