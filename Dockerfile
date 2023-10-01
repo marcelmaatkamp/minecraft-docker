@@ -26,7 +26,7 @@ ENV BedrockPort=19132
 ENV MaxMemory=
 
 # OptionalPaper Minecraft Version override
-ENV Version="1.20.1"
+ENV Version="1.20.2"
 
 # Optional Timezone
 ENV TZ="Europe/London"
@@ -71,7 +71,7 @@ ENV JAVA_ADDRESS=""
 ENV JAVA_PORT="25565"
 
 # Minecraft version for discord bot to display
-ENV MC_VERSION="1.19.4"
+ENV MC_VERSION="1.20.2"
 
 # The discord channel in which to log who starts/stops the server, leave blank for it to be disabled
 ENV LOGS_CHANNEL_ID=""
